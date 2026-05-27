@@ -26,7 +26,7 @@ option_type2 = st.sidebar.selectbox("Type 2", ["CE", "PE"], key="t2")
 if st.sidebar.button("Show Graph 📈"):
     st.info("Data fetch ho raha hai... Kripya thoda intezar karein.")
     
-    # Ticker format setup (Google/Yahoo common format)
+    # Ticker format setup
     if symbol == "NIFTY50":
         ticker_symbol = "^NSEI"
     elif symbol == "BANKNIFTY":
@@ -37,8 +37,8 @@ if st.sidebar.button("Show Graph 📈"):
         ticker_symbol = f"{symbol}.NS"
         
     try:
-        # Data fetch karna (1 din ka data, 5 minute ki candle)
-       df = yf.download(ticker_symbol, period="5d", interval="15m")
+        # Pichle 5 din ka data taaki market closed hone par bhi chart dikhe
+        df = yf.download(ticker_symbol, period="5d", interval="15m")
         
         if not df.empty:
             fig = go.Figure()
@@ -49,7 +49,7 @@ if st.sidebar.button("Show Graph 📈"):
                 y=df['Close'] * (strike1 / df['Close'].iloc[0]), 
                 mode='lines', 
                 name=f"Strike {strike1} {option_type1}", 
-                line=dict(color='#00FFCC', width=2) # Neon Color 1
+                line=dict(color='#00FFCC', width=2)
             ))
             
             # Line 2 (Strike 2)
@@ -58,19 +58,19 @@ if st.sidebar.button("Show Graph 📈"):
                 y=df['Close'] * (strike2 / df['Close'].iloc[0]), 
                 mode='lines', 
                 name=f"Strike {strike2} {option_type2}", 
-                line=dict(color='#FF3366', width=2) # Neon Color 2
+                line=dict(color='#FF3366', width=2)
             ))
             
             fig.update_layout(
-                title=f"Multi-Strike Comparison Chart", 
-                xaxis_title="Time", 
+                title=f"{symbol} Multi-Strike Comparison Chart (15m Interval)", 
+                xaxis_title="Date & Time", 
                 yaxis_title="Value", 
                 template="plotly_dark"
             )
             
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.error("Abhi data available nahi hai. Market hours mein check karein.")
+            st.error("Abhi data available nahi hai.")
     except Exception as e:
         st.error(f"Data laane mein dikkat hui: {e}")
 
