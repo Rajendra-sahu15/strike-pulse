@@ -38,7 +38,7 @@ if st.sidebar.button("Show Graph 📈"):
         
     try:
         # Data fetch karna (1 din ka data, 5 minute ki candle)
-        df = yf.download(ticker_symbol, period="1d", interval="5m")
+       df = yf.download(ticker_symbol, period="5d", interval="15m")
         
         if not df.empty:
             fig = go.Figure()
