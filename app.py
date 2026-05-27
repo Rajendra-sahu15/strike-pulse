@@ -33,21 +33,32 @@ if st.sidebar.button("Show Graph 📈"):
         ticker_symbol = "^NSEBANK"
     elif symbol == "SENSEX":
         ticker_symbol = "^BSESN"
+    elif symbol == "FINNIFTY":
+        ticker_symbol = "NIFTY_FIN_SERVICE.NS"
     else:
         ticker_symbol = f"{symbol}.NS"
         
     try:
-        # Pichle 5 din ka data taaki market closed hone par bhi chart dikhe
-        df = yf.download(ticker_symbol, period="5d", interval="15m")
+        # Hamesha chalne wala Daily Data (Pichle 1 mahine ka history)
+        df = yf.download(ticker_symbol, period="1mo", interval="1d")
         
         if not df.empty:
+            # Agar Multi-index columns hain toh unhe simple karein
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
+            
+            df = df.dropna(subset=['Close'])
+            
             fig = go.Figure()
+            
+            # Base price calculation safely
+            base_price = float(df['Close'].iloc[0])
             
             # Line 1 (Strike 1)
             fig.add_trace(go.Scatter(
                 x=df.index, 
-                y=df['Close'] * (strike1 / df['Close'].iloc[0]), 
-                mode='lines', 
+                y=df['Close'] * (strike1 / base_price), 
+                mode='lines+markers', # Dots bhi dikhenge
                 name=f"Strike {strike1} {option_type1}", 
                 line=dict(color='#00FFCC', width=2)
             ))
@@ -55,24 +66,25 @@ if st.sidebar.button("Show Graph 📈"):
             # Line 2 (Strike 2)
             fig.add_trace(go.Scatter(
                 x=df.index, 
-                y=df['Close'] * (strike2 / df['Close'].iloc[0]), 
-                mode='lines', 
+                y=df['Close'] * (strike2 / base_price), 
+                mode='lines+markers', 
                 name=f"Strike {strike2} {option_type2}", 
                 line=dict(color='#FF3366', width=2)
             ))
             
             fig.update_layout(
-                title=f"{symbol} Multi-Strike Comparison Chart (15m Interval)", 
-                xaxis_title="Date & Time", 
-                yaxis_title="Value", 
-                template="plotly_dark"
+                title=f"{symbol} Multi-Strike Trend Chart (Pichle 1 Mahine Ka Daily Data)", 
+                xaxis_title="Date", 
+                yaxis_title="Value (Scaled)", 
+                template="plotly_dark",
+                hovermode="x unified"
             )
             
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.error("Abhi data available nahi hai.")
+            st.error("Yahoo Finance se data nahi mil pa raha hai. Kripya thodi der baad try karein.")
     except Exception as e:
-        st.error(f"Data laane mein dikkat hui: {e}")
+        st.error(f"Graph banane mein dikkat hui: {e}")
 
 # Disclaimer & Affiliate space
 st.markdown("---")
